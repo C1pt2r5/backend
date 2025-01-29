@@ -1,12 +1,20 @@
 {
   "name": "new_project",
   "version": "1.0.0",
-  "description": "",
+  "description": "a backend at chai aur code channel-youtube",
+  "type": "commonjs",
+  "keywords": [
+    "javascript",
+    "backend",
+    "chai"
+  ],
   "license": "ISC",
   "author": "Vaibhav_kumar",
-  "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon src/index.js"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
   }
 }
