@@ -77,6 +77,105 @@ const registerUser = asyncHandler(async (req,res)=>{
     );
 
 
+}) 
+
+const generateaccessandrefershtoken = async(userID)=>{
+        try{
+            const user = await User.findById(userID)
+            const access = user.generateAccessToken()
+            const refersh = user.generateRefreshToken()
+
+            user.refersh = refersh
+            await user.save({validateBeforeSave: false })
+
+            return{access, refersh} 
+
+
+
+        } catch(error){
+            throw new ApiError(500, "something went wrong while generating refersh and access token")
+        }
+        
+    }
+
+const loginuser= asyncHandler(async(req,res)=>{
+    const {email,username, password} = req.body // req body -> data , username or email , find the user , password chaeck  , access and referesh token 
+    if(!username || !email){
+        throw new ApiError(400,"username or email is required")
+    }
+
+    const user = await User.findOne({
+        $or:[{username},{email}]
+    })
+
+    if(!user){
+        throw new ApiError(404,"user does not exit")
+    }
+
+    const ispasswordvalid = await user.isPasswordCorrect(password)
+
+    if(!ispasswordvalid){
+        throw new ApiError(401,"invalid password")
+    }
+
+    
+    const {access , refersh} = await generateaccessandrefershtoken(user._id)
+
+    const loggeduser= await  User.findById(user._id).select("-password -refersh ")
+
+    const options = {
+        httpOnly:true,
+        secure:true
+    }
+    return res
+    .status(200)
+    .cookie("access",access, options)
+    .cookie("refersh",refersh,options)
+    .json(
+        new ApiResponse(
+            200,
+            {
+                user: loggeduser , access,
+                refersh
+            },
+            "user logged in successfully"
+        )
+    )
+
+    
+
+
 })
 
-export {registerUser}
+const logoutuser = asyncHandler(async(req,res)=>{
+    User.findByIdAndUpdate(
+        req.user._id ,
+        {
+            $set:{
+                refreshToken: undefined
+            }
+        },
+        {
+            new: true
+        }
+    )
+
+    const options = {
+        httpOnly:true,
+        secure:true
+    }
+
+    return res
+    .status(200)
+    .clearCookie("access", options)
+    .clearCookie("refersh" , options)
+    .json(new ApiResponse(200, {}, "user logged out successfully"))
+
+
+})
+
+export {
+    registerUser,
+    loginuser,
+    logoutuser
+}
