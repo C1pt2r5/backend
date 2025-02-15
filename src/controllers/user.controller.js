@@ -369,7 +369,7 @@ const getuserchannelprofile= asyncHandler(async(req, res)=>{
                 },
                 channelsSubscribedToCount:{
                     $size:"$subscribedTo"
-                }
+                },
                 isSubscribed:{
                     $cond:{
                         if:{$in:[req.user?._id,"$subscribers.subscriber"]},
@@ -458,6 +458,8 @@ const getwatchHistory = asyncHandler(async(req,res)=>{
         )
     )
 })
+
+
 
 export {
     registerUser,
